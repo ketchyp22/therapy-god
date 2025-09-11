@@ -13,6 +13,16 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- КНОПКА ДИАГНОСТИКИ -->
+    <button onclick="diagnoseApp()" style="position: fixed; top: 10px; right: 10px; z-index: 9999; background: #ef4444; color: white; padding: 15px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 12px;">
+        🔍 ДИАГНОСТИКА
+    </button>
+
+    <!-- КНОПКА ПРИНУДИТЕЛЬНОГО ПОКАЗА -->
+    <button onclick="forceShowApp()" style="position: fixed; top: 60px; right: 10px; z-index: 9999; background: #10b981; color: white; padding: 15px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 12px;">
+        👁️ ПОКАЗАТЬ
+    </button>
+
     <!-- Видео фон -->
     <video class="video-background" autoplay muted loop>
         <source src="8944398-hd_1920_1080_25fps.mp4" type="video/mp4">
@@ -175,5 +185,108 @@
 
     <!-- Подключение JavaScript -->
     <script src="main.js"></script>
+
+    <!-- ДИАГНОСТИЧЕСКИЕ ФУНКЦИИ -->
+    <script>
+        // Функция диагностики
+        function diagnoseApp() {
+            console.log('=== 🔍 ДИАГНОСТИКА THERAPYGOD ===');
+            
+            // Проверка элементов
+            const startScreen = document.getElementById('start-screen');
+            const caseContainer = document.getElementById('case-container');
+            const systemsGrid = document.querySelector('.systems-grid');
+            const container = document.querySelector('.container');
+            
+            console.log('📋 Проверка элементов:');
+            console.log('  start-screen найден:', !!startScreen);
+            console.log('  case-container найден:', !!caseContainer);
+            console.log('  systems-grid найден:', !!systemsGrid);
+            console.log('  container найден:', !!container);
+            
+            if (startScreen) {
+                const styles = getComputedStyle(startScreen);
+                console.log('👁️ Стили start-screen:');
+                console.log('  display:', styles.display);
+                console.log('  visibility:', styles.visibility);
+                console.log('  opacity:', styles.opacity);
+                console.log('  position:', styles.position);
+                console.log('  z-index:', styles.zIndex);
+                console.log('  width:', styles.width);
+                console.log('  height:', styles.height);
+            }
+            
+            // Проверка CSS
+            const bodyStyles = getComputedStyle(document.body);
+            console.log('🎨 Стили body:');
+            console.log('  background:', bodyStyles.background.substring(0, 100));
+            console.log('  color:', bodyStyles.color);
+            console.log('  font-family:', bodyStyles.fontFamily.substring(0, 50));
+            console.log('  display:', bodyStyles.display);
+            
+            // Проверка загрузки CSS
+            const cssLinks = document.querySelectorAll('link[rel="stylesheet"]');
+            console.log('📎 CSS файлы (' + cssLinks.length + '):');
+            Array.from(cssLinks).forEach((link, index) => {
+                console.log(`  CSS ${index + 1}:`, link.href);
+                console.log('  Загружен:', link.sheet ? 'ДА' : 'НЕТ');
+            });
+            
+            // Проверка переменных игры
+            if (typeof gameState !== 'undefined') {
+                console.log('🎮 GameState:', gameState);
+            }
+            
+            if (typeof clinicalCases !== 'undefined') {
+                console.log('🏥 Clinical Cases загружены:', Object.keys(clinicalCases).length, 'систем');
+            }
+            
+            console.log('=== ✅ ДИАГНОСТИКА ЗАВЕРШЕНА ===');
+        }
+
+        // Функция принудительного показа
+        function forceShowApp() {
+            console.log('🔧 ПРИНУДИТЕЛЬНОЕ ОТОБРАЖЕНИЕ');
+            
+            const startScreen = document.getElementById('start-screen');
+            const caseContainer = document.getElementById('case-container');
+            const resultsContainer = document.getElementById('results-container');
+            
+            if (startScreen) {
+                startScreen.style.display = 'block';
+                startScreen.style.visibility = 'visible';
+                startScreen.style.opacity = '1';
+                startScreen.style.position = 'relative';
+                startScreen.style.zIndex = '1';
+                console.log('✅ start-screen принудительно показан');
+            }
+            
+            if (caseContainer) {
+                caseContainer.style.display = 'none';
+                console.log('✅ case-container скрыт');
+            }
+            
+            if (resultsContainer) {
+                resultsContainer.style.display = 'none';
+                console.log('✅ results-container скрыт');
+            }
+            
+            // Принудительные стили для body
+            document.body.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)';
+            document.body.style.minHeight = '100vh';
+            document.body.style.color = '#ffffff';
+            document.body.style.display = 'flex';
+            document.body.style.alignItems = 'center';
+            document.body.style.justifyContent = 'center';
+            
+            console.log('🎯 Приложение должно быть видно!');
+        }
+
+        // Автоматическая диагностика через 3 секунды
+        setTimeout(function() {
+            console.log('🤖 Автоматическая диагностика через 3 секунды...');
+            diagnoseApp();
+        }, 3000);
+    </script>
 </body>
 </html>
