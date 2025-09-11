@@ -1,3 +1,136 @@
+// ==================== МЕДИЦИНСКИЙ ДИСКЛЕЙМЕР ====================
+function showMedicalDisclaimer() {
+    return new Promise((resolve) => {
+        const disclaimerHTML = `
+            <div id="medical-disclaimer" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(15px);
+                animation: fadeIn 0.5s ease-out;
+            ">
+                <div style="
+                    background: var(--glass-bg);
+                    border: 1px solid var(--glass-border);
+                    border-radius: var(--border-radius-lg);
+                    padding: 40px;
+                    max-width: 550px;
+                    margin: 20px;
+                    text-align: center;
+                    box-shadow: var(--shadow-glass);
+                    animation: slideInUp 0.6s ease-out;
+                ">
+                    <div style="
+                        width: 80px;
+                        height: 80px;
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        border-radius: 50%;
+                        margin: 0 auto 25px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 40px;
+                    ">
+                        ⚠️
+                    </div>
+                    <h2 style="
+                        color: #ef4444; 
+                        margin-bottom: 25px; 
+                        font-size: 26px;
+                        font-weight: 700;
+                        letter-spacing: -0.02em;
+                    ">
+                        Медицинский дисклеймер
+                    </h2>
+                    <div style="
+                        color: var(--text-secondary); 
+                        line-height: 1.7; 
+                        margin-bottom: 30px;
+                        text-align: left;
+                    ">
+                        <p style="margin-bottom: 15px;">
+                            <strong style="color: var(--text-primary);">📚 Образовательные цели:</strong><br>
+                            Приложение предназначено исключительно для обучения медицинских работников и студентов медицинских вузов.
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            <strong style="color: var(--text-primary);">🎯 Учебный характер:</strong><br>
+                            Все клинические случаи носят тренировочный характер и основаны на типовых медицинских ситуациях.
+                        </p>
+                        <p style="margin-bottom: 20px;">
+                            <strong style="color: #ef4444;">⚕️ НЕ является медицинским советом:</strong><br>
+                            Приложение НЕ заменяет профессиональную медицинскую консультацию, диагностику или лечение.
+                        </p>
+                        <div style="
+                            background: rgba(239, 68, 68, 0.1);
+                            border: 1px solid rgba(239, 68, 68, 0.3);
+                            border-radius: 8px;
+                            padding: 15px;
+                            text-align: center;
+                        ">
+                            <strong style="color: #ef4444;">
+                                При любых медицинских вопросах обращайтесь к квалифицированным специалистам!
+                            </strong>
+                        </div>
+                    </div>
+                    <button id="accept-disclaimer" style="
+                        background: var(--medical-primary);
+                        color: white;
+                        border: none;
+                        padding: 18px 40px;
+                        border-radius: var(--border-radius);
+                        font-size: 16px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        width: 100%;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    " onmouseover="this.style.background='var(--medical-secondary)'; this.style.transform='translateY(-2px)'" 
+                       onmouseout="this.style.background='var(--medical-primary)'; this.style.transform='translateY(0)'">
+                        ✓ Понял(а), начать обучение
+                    </button>
+                </div>
+            </div>
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideInUp {
+                    from { opacity: 0; transform: translateY(50px) scale(0.9); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            </style>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', disclaimerHTML);
+        
+        document.getElementById('accept-disclaimer').addEventListener('click', () => {
+            const disclaimer = document.getElementById('medical-disclaimer');
+            disclaimer.style.animation = 'fadeOut 0.3s ease-out forwards';
+            
+            setTimeout(() => {
+                disclaimer.remove();
+                // Сохраняем согласие в переменной (не используем localStorage)
+                window.disclaimerAccepted = true;
+                resolve();
+            }, 300);
+        });
+    });
+}
+
+// Функция проверки необходимости показа дисклеймера
+function checkDisclaimerNeeded() {
+    return !window.disclaimerAccepted;
+}
+
 // ==================== СОСТОЯНИЕ ИГРЫ ====================
 let gameState = {
     currentSystem: 'cardiovascular',
@@ -83,6 +216,22 @@ function getDefaultCases() {
                 ],
                 correct: 1,
                 explanation: "Классическая клиника острого ИМ: загрудинная боль >20 мин с иррадиацией, подъем ST в отведениях от нижней стенки (II, III, aVF), положительный тропонин. Факторы риска: возраст, АГ, курение, наследственность."
+            },
+            {
+                patient: "Женщина, 67 лет, пенсионерка",
+                complaint: "Нарастающая одышка при физической нагрузке в течение 3 месяцев, отеки голеней и стоп, увеличение живота.",
+                history: "В анамнезе: ИБС, перенесенный Q-ИМ 2 года назад, артериальная гипертензия.",
+                examination: "Ортопноэ. Акроцианоз. Набухание шейных вен. В легких влажные хрипы в нижних отделах. Тоны сердца приглушены, ритм галопа. Гепатомегалия +3 см.",
+                additional: "ЭхоКГ: ФВ ЛЖ 35%, диффузная гипокинезия. NT-proBNP 2500 пг/мл. Рентген ОГК: кардиомегалия, застой в малом круге.",
+                question: "Стадия хронической сердечной недостаточности по NYHA:",
+                options: [
+                    "NYHA I",
+                    "NYHA II", 
+                    "NYHA III",
+                    "NYHA IV"
+                ],
+                correct: 2,
+                explanation: "NYHA III: выраженная одышка при незначительной физической нагрузке, но в покое симптомов нет. Признаки застоя по большому и малому кругу, снижение ФВ <40%, высокий NT-proBNP."
             }
         ],
         respiratory: [
@@ -116,6 +265,11 @@ let startScreen, caseContainer, resultsContainer;
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Инициализация TherapyGod...');
+    
+    // Показываем дисклеймер при первом запуске
+    if (checkDisclaimerNeeded()) {
+        await showMedicalDisclaimer();
+    }
     
     // Загружаем клинические случаи
     await loadClinicalCases();
@@ -165,7 +319,8 @@ function startCases() {
     const systemCases = clinicalCases[gameState.currentSystem] || [];
     
     if (systemCases.length === 0) {
-        alert('Случаи для этой системы еще в разработке!');
+        // Показываем красивое уведомление вместо alert
+        showNotification('Случаи для этой системы находятся в разработке! Попробуйте другую специальность.', 'warning');
         return;
     }
 
@@ -177,12 +332,44 @@ function startCases() {
     gameState.score = 0;
     gameState.selectedOption = null;
 
-    // Переключаем на экран случая
-    startScreen.style.display = 'none';
-    caseContainer.style.display = 'block';
+    // Переключаем на экран случая с анимацией
+    startScreen.style.animation = 'fadeOut 0.3s ease-out forwards';
+    setTimeout(() => {
+        startScreen.style.display = 'none';
+        caseContainer.style.display = 'block';
+        caseContainer.style.animation = 'fadeIn 0.3s ease-out forwards';
+        
+        // Загружаем первый случай
+        loadCase();
+    }, 300);
+}
 
-    // Загружаем первый случай
-    loadCase();
+// ==================== УВЕДОМЛЕНИЯ ====================
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 30px;
+        right: 30px;
+        background: ${type === 'warning' ? 'var(--medical-warning)' : 'var(--medical-primary)'};
+        color: white;
+        padding: 20px 25px;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        z-index: 9999;
+        box-shadow: var(--shadow-glass);
+        animation: slideInRight 0.5s ease-out;
+        max-width: 400px;
+        backdrop-filter: blur(10px);
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.5s ease-out forwards';
+        setTimeout(() => notification.remove(), 500);
+    }, 3000);
 }
 
 // ==================== ЗАГРУЗКА СЛУЧАЯ ====================
@@ -203,14 +390,14 @@ function loadCase() {
     // Формируем содержимое случая
     const caseContent = document.getElementById('case-content');
     caseContent.innerHTML = `
-        <div class="patient-info">Пациент: ${case_data.patient}</div>
+        <div class="patient-info">👤 Пациент: ${case_data.patient}</div>
         <div class="case-description">
-            <strong>Жалобы:</strong> ${case_data.complaint}<br><br>
-            <strong>Анамнез заболевания:</strong> ${case_data.history}<br><br>
-            <strong>Объективный осмотр:</strong> ${case_data.examination}
+            <strong>💬 Жалобы:</strong> ${case_data.complaint}<br><br>
+            <strong>📋 Анамнез заболевания:</strong> ${case_data.history}<br><br>
+            <strong>🔍 Объективный осмотр:</strong> ${case_data.examination}
         </div>
-        ${case_data.additional ? `<div class="case-data"><strong>Дополнительные данные:</strong><br>${case_data.additional}</div>` : ''}
-        <div class="case-question">${case_data.question}</div>
+        ${case_data.additional ? `<div class="case-data"><strong>📊 Дополнительные данные:</strong><br>${case_data.additional}</div>` : ''}
+        <div class="case-question">❓ ${case_data.question}</div>
     `;
 
     // Создаем варианты ответов
@@ -220,7 +407,7 @@ function loadCase() {
     case_data.options.forEach((option, index) => {
         const optionElement = document.createElement('div');
         optionElement.classList.add('option');
-        optionElement.textContent = option;
+        optionElement.innerHTML = `<span style="font-weight: 600; color: var(--medical-primary); margin-right: 10px;">${String.fromCharCode(65 + index)}.</span>${option}`;
         optionElement.dataset.index = index;
         optionElement.addEventListener('click', () => selectOption(optionElement, index));
         optionsContainer.appendChild(optionElement);
@@ -229,6 +416,14 @@ function loadCase() {
     // Скрываем объяснение и делаем кнопку неактивной
     document.getElementById('explanation').classList.remove('show');
     document.getElementById('next-case').disabled = true;
+    
+    // Обновляем текст кнопки
+    const nextButton = document.getElementById('next-case');
+    if (gameState.currentCaseIndex === gameState.currentCases.length - 1) {
+        nextButton.textContent = 'Показать результаты';
+    } else {
+        nextButton.textContent = 'Следующий случай';
+    }
 }
 
 // ==================== ВЫБОР ОТВЕТА ====================
@@ -251,7 +446,11 @@ function selectOption(element, index) {
     options.forEach(opt => opt.style.pointerEvents = 'none');
 
     // Показываем объяснение
-    document.getElementById('explanation-text').textContent = case_data.explanation;
+    document.getElementById('explanation-text').innerHTML = `
+        <strong style="color: var(--medical-success);">Правильный ответ: ${String.fromCharCode(65 + case_data.correct)}. ${case_data.options[case_data.correct]}</strong><br><br>
+        <strong>📚 Клиническое обоснование:</strong><br>
+        ${case_data.explanation}
+    `;
     document.getElementById('explanation').classList.add('show');
 
     // Включаем кнопку следующего случая
@@ -260,6 +459,9 @@ function selectOption(element, index) {
     // Увеличиваем счет, если правильно
     if (isCorrect) {
         gameState.score++;
+        showNotification('✅ Правильный диагноз!', 'success');
+    } else {
+        showNotification('❌ Неверный диагноз. Изучите объяснение.', 'error');
     }
 }
 
@@ -271,39 +473,81 @@ function nextCase() {
 
 // ==================== ВЫХОД ИЗ ИГРЫ ====================
 function exitCases() {
-    caseContainer.style.display = 'none';
-    startScreen.style.display = 'block';
+    caseContainer.style.animation = 'fadeOut 0.3s ease-out forwards';
+    setTimeout(() => {
+        caseContainer.style.display = 'none';
+        startScreen.style.display = 'block';
+        startScreen.style.animation = 'fadeIn 0.3s ease-out forwards';
+    }, 300);
 }
 
 // ==================== ПЕРЕЗАПУСК ====================
 function restartCases() {
-    resultsContainer.style.display = 'none';
-    startScreen.style.display = 'block';
+    resultsContainer.style.animation = 'fadeOut 0.3s ease-out forwards';
+    setTimeout(() => {
+        resultsContainer.style.display = 'none';
+        startScreen.style.display = 'block';
+        startScreen.style.animation = 'fadeIn 0.3s ease-out forwards';
+    }, 300);
 }
 
 // ==================== ПОКАЗ РЕЗУЛЬТАТОВ ====================
 function showResults() {
-    caseContainer.style.display = 'none';
-    resultsContainer.style.display = 'block';
+    caseContainer.style.animation = 'fadeOut 0.3s ease-out forwards';
+    setTimeout(() => {
+        caseContainer.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        resultsContainer.style.animation = 'fadeIn 0.3s ease-out forwards';
 
-    const percentage = Math.round((gameState.score / gameState.currentCases.length) * 100);
+        const percentage = Math.round((gameState.score / gameState.currentCases.length) * 100);
+        
+        // Анимированное обновление процентов
+        animateNumber(document.getElementById('percentage'), 0, percentage, 1000);
+        
+        document.getElementById('correct-answers').textContent = gameState.score;
+        document.getElementById('total-questions').textContent = gameState.currentCases.length;
+
+        let resultText, resultEmoji;
+        if (percentage >= 90) {
+            resultText = 'Превосходно! Вы демонстрируете экспертный уровень клинического мышления!';
+            resultEmoji = '🏆';
+        } else if (percentage >= 70) {
+            resultText = 'Отлично! Ваши диагностические навыки на высоком уровне!';
+            resultEmoji = '🎉';
+        } else if (percentage >= 50) {
+            resultText = 'Хорошо! Есть понимание клинических процессов, но стоит углубить знания.';
+            resultEmoji = '👍';
+        } else {
+            resultText = 'Нужно больше практики! Изучайте клинические случаи и возвращайтесь снова.';
+            resultEmoji = '📚';
+        }
+        
+        document.getElementById('result-message').innerHTML = `${resultEmoji} ${resultText}`;
+    }, 300);
+}
+
+// ==================== АНИМАЦИИ ====================
+function animateNumber(element, start, end, duration) {
+    const startTime = Date.now();
+    const range = end - start;
     
-    document.getElementById('percentage').textContent = percentage;
-    document.getElementById('correct-answers').textContent = gameState.score;
-    document.getElementById('total-questions').textContent = gameState.currentCases.length;
-
-    let resultText;
-    if (percentage >= 90) {
-        resultText = '🏆 Превосходно! Вы демонстрируете экспертный уровень клинического мышления!';
-    } else if (percentage >= 70) {
-        resultText = '🎉 Отлично! Ваши диагностические навыки на высоком уровне!';
-    } else if (percentage >= 50) {
-        resultText = '👍 Хорошо! Есть понимание клинических процессов, но стоит углубить знания.';
-    } else {
-        resultText = '📚 Нужно больше практики! Изучайте клинические случаи и возвращайтесь снова.';
+    function updateNumber() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = Math.round(start + (range * easeOutCubic(progress)));
+        
+        element.textContent = current;
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateNumber);
+        }
     }
     
-    document.getElementById('result-message').innerHTML = resultText;
+    updateNumber();
+}
+
+function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
 }
 
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
@@ -314,4 +558,29 @@ function shuffleArray(array) {
         [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
     }
     return newArray;
+}
+
+// Добавляем стили для анимаций
+if (!document.querySelector('#animation-styles')) {
+    const animationStyles = document.createElement('style');
+    animationStyles.id = 'animation-styles';
+    animationStyles.textContent = `
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(animationStyles);
 }
