@@ -7,24 +7,32 @@
     
     <!-- Шрифты -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Стили -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Видео фон -->
+    <video class="video-background" autoplay muted loop>
+        <source src="8944398-hd_1920_1080_25fps.mp4" type="video/mp4">
+        <!-- Fallback если видео не загрузится -->
+    </video>
+    <div class="video-overlay"></div>
+
     <!-- Стартовый экран -->
     <div id="start-screen">
         <div class="container">
             <div class="user-info">
-                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNkYzI2MjYiLz48cGF0aCBkPSJNNTAgMzBjNS41IDAgMTAgNC41IDEwIDEwcy00LjUgMTAtMTAgMTAtMTAtNC41LTEwLTEwIDQuNS0xMCAxMC0xMHptMCAzMGMxMC41IDAgMjAgNS41IDIwIDEwdjVIMzB2LTVjMC00LjUgOS41LTEwIDIwLTEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=" alt="Пользователь">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiMyNTYzZWIiLz48cGF0aCBkPSJNNTAgMzBjNS41IDAgMTAgNC41IDEwIDEwcy00LjUgMTAtMTAgMTAtMTAtNC41LTEwLTEwIDQuNS0xMCAxMC0xMHptMCAzMGMxMC41IDAgMjAgNS41IDIwIDEwdjVIMzB2LTVjMC00LjUgOS41LTEwIDIwLTEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=" alt="Пользователь">
                 <span>Доктор</span>
             </div>
             
             <!-- Заголовок -->
             <div class="header">
                 <h1 class="title">TherapyGod</h1>
-                <p class="subtitle">Прокачай клиническое мышление</p>
-                <p class="tagline">Решай реальные клинические случаи</p>
+                <p class="subtitle">Система клинического обучения</p>
+                <p class="tagline">Медицинские случаи для практики</p>
             </div>
 
             <!-- Статистика -->
@@ -38,7 +46,7 @@
                     <span class="stat-label">Точность диагнозов</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-number">0🔥</span>
+                    <span class="stat-number">0</span>
                     <span class="stat-label">Лучшая серия</span>
                 </div>
                 <div class="stat-card">
@@ -49,40 +57,34 @@
 
             <!-- Системы организма -->
             <div class="systems-section">
-                <h2 class="section-title">Выберите систему организма</h2>
+                <h2 class="section-title">Выберите медицинскую специальность</h2>
                 <div class="systems-grid">
                     <div class="system-card active" data-system="cardiovascular">
-                        <div class="system-icon">❤️</div>
                         <div class="system-title">Сердечно-сосудистая</div>
                         <div class="system-description">ИБС, инфаркты, аритмии, СН</div>
                     </div>
 
                     <div class="system-card" data-system="respiratory">
-                        <div class="system-icon">🫁</div>
                         <div class="system-title">Дыхательная</div>
                         <div class="system-description">Пневмонии, ХОБЛ, астма</div>
                     </div>
 
                     <div class="system-card" data-system="gastrointestinal">
-                        <div class="system-icon">🫃</div>
                         <div class="system-title">Пищеварительная</div>
                         <div class="system-description">ЯБ, гепатиты, панкреатит</div>
                     </div>
 
                     <div class="system-card" data-system="nervous">
-                        <div class="system-icon">🧠</div>
                         <div class="system-title">Нервная</div>
                         <div class="system-description">Инсульты, эпилепсия, менингит</div>
                     </div>
 
                     <div class="system-card" data-system="endocrine">
-                        <div class="system-icon">⚡</div>
                         <div class="system-title">Эндокринная</div>
                         <div class="system-description">Диабет, тиреотоксикоз</div>
                     </div>
 
                     <div class="system-card" data-system="renal">
-                        <div class="system-icon">🫘</div>
                         <div class="system-title">Мочевыделительная</div>
                         <div class="system-description">Нефриты, ОПН, ХПН</div>
                     </div>
@@ -92,7 +94,7 @@
             <!-- Кнопка запуска -->
             <div class="action-section">
                 <button class="btn btn-primary" id="start-cases">
-                    🔥 Начать решать случаи
+                    Начать клиническое обучение
                 </button>
             </div>
 
@@ -107,7 +109,7 @@
     <div id="case-container" style="display: none;">
         <div class="container">
             <div class="user-info">
-                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNkYzI2MjYiLz48cGF0aCBkPSJNNTAgMzBjNS41IDAgMTAgNC41IDEwIDEwcy00LjUgMTAtMTAgMTAtMTAtNC41LTEwLTEwIDQuNS0xMCAxMC0xMHptMCAzMGMxMC41IDAgMjAgNS41IDIwIDEwdjVIMzB2LTVjMC00LjUgOS41LTEwIDIwLTEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=" alt="Пользователь">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiMyNTYzZWIiLz48cGF0aCBkPSJNNTAgMzBjNS41IDAgMTAgNC41IDEwIDEwcy00LjUgMTAtMTAgMTAtMTAtNC41LTEwLTEwIDQuNS0xMCAxMC0xMHptMCAzMGMxMC41IDAgMjAgNS41IDIwIDEwdjVIMzB2LTVjMC00LjUgOS41LTEwIDIwLTEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=" alt="Пользователь">
                 <span>Доктор</span>
             </div>
             
@@ -127,16 +129,16 @@
             </div>
 
             <div class="explanation" id="explanation">
-                <div class="explanation-title">Объяснение:</div>
+                <div class="explanation-title">Клиническое обоснование</div>
                 <div id="explanation-text"></div>
             </div>
             
             <div class="quiz-buttons">
                 <button class="btn btn-primary" id="next-case" disabled>
-                    ➡️ Следующий случай
+                    Следующий случай
                 </button>
-                <button class="btn" id="exit-cases" style="background: var(--glass-bg); color: var(--text-primary);">
-                    ❌ Выйти
+                <button class="btn" id="exit-cases" style="background: rgba(255, 255, 255, 0.1); color: var(--text-primary);">
+                    Завершить
                 </button>
             </div>
         </div>
@@ -159,13 +161,13 @@
                 </div>
                 
                 <div class="result-message" id="result-message">
-                    🎉 Отличная клиническая работа! Ваше диагностическое мышление на высоком уровне!
+                    Отличная клиническая работа! Ваше диагностическое мышление на высоком уровне!
                 </div>
             </div>
             
             <div class="action-section">
                 <button class="btn btn-primary" id="restart-cases">
-                    🔄 Решать еще случаи
+                    Повторить обучение
                 </button>
             </div>
         </div>
