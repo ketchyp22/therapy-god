@@ -1,21 +1,31 @@
 /* ==================== МЕДИЦИНСКИЕ ПЕРЕМЕННЫЕ ==================== */
 :root {
-    --therapy-red: #dc2626;
-    --therapy-gradient: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    --cardio-red: #ef4444;
-    --pulmo-blue: #3b82f6;
-    --gastro-green: #059669;
-    --neuro-purple: #8b5cf6;
-    --endo-orange: #f59e0b;
-    --nephro-cyan: #06b6d4;
-    --glass-bg: rgba(255, 255, 255, 0.08);
-    --glass-bg-strong: rgba(255, 255, 255, 0.15);
-    --glass-border: rgba(255, 255, 255, 0.2);
+    --medical-primary: #2563eb;
+    --medical-secondary: #1d4ed8;
+    --medical-accent: #3b82f6;
+    --medical-success: #10b981;
+    --medical-danger: #ef4444;
+    --medical-warning: #f59e0b;
+    --medical-dark: #0f172a;
+    --medical-gray: #374151;
+    --medical-light: #f8fafc;
+    
+    --glass-bg: rgba(15, 23, 42, 0.85);
+    --glass-bg-light: rgba(248, 250, 252, 0.95);
+    --glass-bg-hover: rgba(15, 23, 42, 0.92);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-border-light: rgba(0, 0, 0, 0.1);
+    
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.85);
     --text-muted: rgba(255, 255, 255, 0.65);
-    --shadow-3d: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    --therapy-glow: 0 0 30px rgba(220, 38, 38, 0.4);
+    --text-primary-dark: #1f2937;
+    --text-secondary-dark: #4b5563;
+    
+    --shadow-medical: 0 4px 32px rgba(37, 99, 235, 0.15);
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
 }
 
 /* ==================== БАЗОВЫЕ СТИЛИ ==================== */
@@ -27,7 +37,7 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #374151 75%, #4b5563 100%);
+    background: var(--medical-dark);
     min-height: 100vh;
     color: var(--text-primary);
     padding: 20px;
@@ -38,58 +48,46 @@ body {
     overflow-x: hidden;
 }
 
-/* Медицинский фон */
-body::before {
-    content: '';
+/* ==================== ВИДЕО ФОН ==================== */
+.video-background {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: 
-        radial-gradient(circle at 25% 25%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(185, 28, 28, 0.1) 0%, transparent 50%);
-    pointer-events: none;
+    z-index: -2;
+    object-fit: cover;
+    filter: brightness(0.3) blur(1px);
+}
+
+.video-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: -1;
+    background: linear-gradient(
+        135deg, 
+        rgba(15, 23, 42, 0.8) 0%, 
+        rgba(37, 99, 235, 0.1) 50%, 
+        rgba(15, 23, 42, 0.9) 100%
+    );
 }
 
 /* ==================== КОНТЕЙНЕР ==================== */
 .container {
     background: var(--glass-bg);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border-radius: 32px;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: var(--border-radius-lg);
     border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-3d);
+    box-shadow: var(--shadow-glass);
     width: 100%;
     max-width: 720px;
     padding: 48px;
     position: relative;
-    animation: containerFloat 8s ease-in-out infinite;
     overflow: hidden;
-}
-
-@keyframes containerFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
-}
-
-/* Пульсирующая граница */
-.container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--therapy-gradient);
-    border-radius: 32px 32px 0 0;
-    animation: therapyPulse 2s ease-in-out infinite;
-}
-
-@keyframes therapyPulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
 }
 
 /* ==================== ЗАГОЛОВОК ==================== */
@@ -100,21 +98,12 @@ body::before {
 
 .title {
     font-size: 52px;
-    font-weight: 900;
+    font-weight: 800;
     margin-bottom: 12px;
-    background: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--text-primary);
     letter-spacing: -0.03em;
-    animation: titleGlow 3s ease-in-out infinite;
     line-height: 1;
     position: relative;
-}
-
-@keyframes titleGlow {
-    0%, 100% { filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.3)); }
-    50% { filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.6)); }
 }
 
 .subtitle {
@@ -139,13 +128,13 @@ body::before {
     justify-content: center;
     margin-bottom: 32px;
     padding: 16px 24px;
-    background: var(--glass-bg-strong);
+    background: var(--glass-bg-hover);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
-    box-shadow: var(--shadow-3d);
+    box-shadow: var(--shadow-glass);
     transition: all 0.3s ease;
 }
 
@@ -154,8 +143,8 @@ body::before {
     height: 48px;
     border-radius: 50%;
     margin-right: 16px;
-    border: 2px solid var(--therapy-red);
-    box-shadow: 0 0 15px rgba(220, 38, 38, 0.3);
+    border: 2px solid var(--medical-primary);
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
 }
 
 .user-info span {
@@ -172,45 +161,29 @@ body::before {
 }
 
 .stat-card {
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
-    border-radius: 20px;
+    border-radius: var(--border-radius);
     padding: 24px 16px;
     text-align: center;
-    box-shadow: var(--shadow-3d);
+    box-shadow: var(--shadow-glass);
     transition: all 0.4s ease;
     position: relative;
     overflow: hidden;
 }
 
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.1), transparent);
-    transition: left 0.6s ease;
-}
-
-.stat-card:hover::before {
-    left: 100%;
-}
-
 .stat-card:hover {
     transform: translateY(-6px);
-    box-shadow: var(--shadow-3d), var(--therapy-glow);
-    background: var(--glass-bg-strong);
+    box-shadow: var(--shadow-glass), var(--shadow-medical);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .stat-number {
     font-size: 28px;
     font-weight: 800;
-    color: var(--therapy-red);
+    color: var(--medical-primary);
     display: block;
     margin-bottom: 8px;
-    text-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
 }
 
 .stat-label {
@@ -243,7 +216,7 @@ body::before {
     transform: translateX(-50%);
     width: 60px;
     height: 3px;
-    background: var(--therapy-gradient);
+    background: var(--medical-primary);
     border-radius: 2px;
 }
 
@@ -254,10 +227,10 @@ body::before {
 }
 
 .system-card {
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    border-radius: 18px;
+    border-radius: var(--border-radius);
     padding: 24px 18px;
     cursor: pointer;
     transition: all 0.4s ease;
@@ -270,58 +243,37 @@ body::before {
     justify-content: center;
 }
 
-.system-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, transparent 0%, rgba(220, 38, 38, 0.05) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.system-card:hover::before {
-    opacity: 1;
-}
-
 .system-card:hover {
-    transform: translateY(-6px) rotateX(4deg);
-    box-shadow: var(--shadow-3d), var(--therapy-glow);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-glass), var(--shadow-medical);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .system-card.active {
-    background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(185, 28, 28, 0.1) 100%);
-    border-color: var(--therapy-red);
+    background: rgba(37, 99, 235, 0.15);
+    border-color: var(--medical-primary);
     transform: translateY(-3px);
-    box-shadow: var(--shadow-3d), var(--therapy-glow);
+    box-shadow: var(--shadow-glass), var(--shadow-medical);
 }
 
 /* Цветовая схема для разных систем */
 .system-card[data-system="cardiovascular"] {
-    border-left: 4px solid var(--cardio-red);
+    border-left: 4px solid #ef4444;
 }
 .system-card[data-system="respiratory"] {
-    border-left: 4px solid var(--pulmo-blue);
+    border-left: 4px solid #3b82f6;
 }
 .system-card[data-system="gastrointestinal"] {
-    border-left: 4px solid var(--gastro-green);
+    border-left: 4px solid #10b981;
 }
 .system-card[data-system="nervous"] {
-    border-left: 4px solid var(--neuro-purple);
+    border-left: 4px solid #8b5cf6;
 }
 .system-card[data-system="endocrine"] {
-    border-left: 4px solid var(--endo-orange);
+    border-left: 4px solid #f59e0b;
 }
 .system-card[data-system="renal"] {
-    border-left: 4px solid var(--nephro-cyan);
-}
-
-.system-icon {
-    font-size: 36px;
-    margin-bottom: 12px;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    border-left: 4px solid #06b6d4;
 }
 
 .system-title {
@@ -347,29 +299,15 @@ body::before {
 .btn {
     padding: 20px 50px;
     border: none;
-    border-radius: 20px;
+    border-radius: var(--border-radius);
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.4s ease;
     position: relative;
     overflow: hidden;
-    box-shadow: var(--shadow-3d);
-}
-
-.btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s ease;
-}
-
-.btn:hover::before {
-    left: 100%;
+    box-shadow: var(--shadow-glass);
+    font-family: inherit;
 }
 
 .btn:hover {
@@ -377,13 +315,14 @@ body::before {
 }
 
 .btn-primary {
-    background: var(--therapy-gradient);
+    background: var(--medical-primary);
     color: white;
-    border: 1px solid rgba(220, 38, 38, 0.3);
+    border: 1px solid rgba(37, 99, 235, 0.3);
 }
 
 .btn-primary:hover {
-    box-shadow: var(--shadow-3d), var(--therapy-glow);
+    background: var(--medical-secondary);
+    box-shadow: var(--shadow-glass), var(--shadow-medical);
 }
 
 .btn:disabled {
@@ -411,7 +350,7 @@ body::before {
 
 .progress-container {
     height: 12px;
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     margin-bottom: 25px;
     overflow: hidden;
@@ -422,27 +361,27 @@ body::before {
 
 .progress-bar {
     height: 100%;
-    background: var(--therapy-gradient);
+    background: var(--medical-primary);
     border-radius: 10px;
     width: 0%;
     transition: width 0.8s ease;
 }
 
 .case-content {
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(15px);
     padding: 30px;
-    border-radius: 20px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-3d);
+    box-shadow: var(--shadow-glass);
     margin-bottom: 30px;
-    border-left: 4px solid var(--therapy-red);
+    border-left: 4px solid var(--medical-primary);
 }
 
 .patient-info {
     font-size: 18px;
     font-weight: 600;
-    color: var(--therapy-red);
+    color: var(--medical-primary);
     margin-bottom: 15px;
 }
 
@@ -456,11 +395,12 @@ body::before {
 .case-data {
     background: rgba(0, 0, 0, 0.2);
     padding: 15px;
-    border-radius: 12px;
+    border-radius: var(--border-radius);
     margin: 15px 0;
-    font-family: monospace;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
     font-size: 14px;
     line-height: 1.4;
+    border: 1px solid var(--glass-border);
 }
 
 .case-question {
@@ -478,10 +418,10 @@ body::before {
 }
 
 .option {
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(15px);
     padding: 20px 25px;
-    border-radius: 16px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--glass-border);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -490,36 +430,36 @@ body::before {
     font-size: 16px;
     font-weight: 500;
     color: var(--text-primary);
-    box-shadow: var(--shadow-3d);
+    box-shadow: var(--shadow-glass);
 }
 
 .option:hover {
-    background: var(--glass-bg-strong);
+    background: rgba(255, 255, 255, 0.08);
     transform: translateY(-3px);
 }
 
 .option.selected {
-    background: rgba(220, 38, 38, 0.2);
-    border-color: var(--therapy-red);
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3);
+    background: rgba(37, 99, 235, 0.2);
+    border-color: var(--medical-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
 }
 
 .option.correct {
-    background: rgba(5, 150, 105, 0.3);
-    border-color: #059669;
+    background: rgba(16, 185, 129, 0.3);
+    border-color: var(--medical-success);
     animation: correctPulse 1s ease-out;
 }
 
 .option.wrong {
     background: rgba(239, 68, 68, 0.3);
-    border-color: #ef4444;
+    border-color: var(--medical-danger);
     animation: wrongShake 0.5s ease-out;
 }
 
 @keyframes correctPulse {
-    0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); }
-    70% { box-shadow: 0 0 0 20px rgba(5, 150, 105, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
 @keyframes wrongShake {
@@ -529,11 +469,12 @@ body::before {
 }
 
 .explanation {
-    background: var(--glass-bg-strong);
+    background: rgba(16, 185, 129, 0.1);
     padding: 20px;
-    border-radius: 16px;
+    border-radius: var(--border-radius);
     margin-top: 20px;
-    border-left: 4px solid var(--gastro-green);
+    border-left: 4px solid var(--medical-success);
+    border: 1px solid var(--glass-border);
     display: none;
 }
 
@@ -549,8 +490,9 @@ body::before {
 
 .explanation-title {
     font-weight: 600;
-    color: var(--gastro-green);
+    color: var(--medical-success);
     margin-bottom: 10px;
+    font-size: 14px;
 }
 
 .quiz-buttons {
@@ -579,11 +521,7 @@ body::before {
     font-size: 84px;
     font-weight: 900;
     margin: 20px 0;
-    background: var(--therapy-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: titleGlow 4s ease-in-out infinite;
+    color: var(--medical-primary);
 }
 
 .score-details {
@@ -595,10 +533,10 @@ body::before {
 .result-message {
     font-size: 18px;
     color: var(--text-secondary);
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     padding: 20px;
-    border-radius: 16px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--glass-border);
     font-weight: 500;
     line-height: 1.6;
@@ -619,8 +557,7 @@ body::before {
 }
 
 .footer a:hover {
-    color: var(--therapy-red);
-    text-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+    color: var(--medical-primary);
 }
 
 /* ==================== АДАПТИВНОСТЬ ==================== */
@@ -649,11 +586,6 @@ body::before {
         padding: 20px 16px;
     }
     
-    .system-icon {
-        font-size: 32px;
-        margin-bottom: 10px;
-    }
-    
     .system-title {
         font-size: 15px;
     }
@@ -668,6 +600,14 @@ body::before {
 
     .case-description {
         font-size: 15px;
+    }
+
+    .quiz-buttons {
+        flex-direction: column;
+    }
+
+    .quiz-buttons .btn {
+        max-width: none;
     }
 }
 
