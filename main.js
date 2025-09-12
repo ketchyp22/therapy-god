@@ -13,6 +13,33 @@ let clinicalCases = {};
 let loadingAttempts = 0;
 const MAX_LOADING_ATTEMPTS = 3;
 
+// ==================== ИНИЦИАЛИЗАЦИЯ ДЛЯ ВК ====================
+// Уведомляем ВК что приложение инициализируется
+if (typeof window !== 'undefined') {
+    // Для ВК приложений
+    if (window.parent && window.parent !== window) {
+        try {
+            window.parent.postMessage('VKWebAppInit', '*');
+            console.log('📱 Отправлено сообщение VKWebAppInit для ВК');
+        } catch (e) {
+            console.log('⚠️ Не удалось отправить VKWebAppInit:', e);
+        }
+    }
+    
+    // Инициализация VK API если доступно
+    if (typeof VK !== 'undefined' && VK.init) {
+        try {
+            VK.init(function() {
+                console.log('✅ VK API инициализирован успешно');
+            }, function() {
+                console.log('❌ Ошибка инициализации VK API');
+            }, '5.199');
+        } catch (e) {
+            console.log('⚠️ VK API недоступен:', e);
+        }
+    }
+}
+
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Инициализация TherapyGod...');
@@ -34,6 +61,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         setupEventHandlers();
         console.log('✅ TherapyGod готов к работе!');
         
+        // Уведомляем ВК о готовности после полной загрузки
+        notifyVKAppReady();
+        
     } catch (error) {
         console.error('❌ ОШИБКА ЗАГРУЗКИ:', error);
         hideLoadingIndicator();
@@ -47,6 +77,44 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 });
+
+// ==================== УВЕДОМЛЕНИЕ ВК О ГОТОВНОСТИ ====================
+function notifyVKAppReady() {
+    try {
+        // Для ВК приложений отправляем сообщение о готовности
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'VKWebAppUpdateConfig',
+                data: {
+                    app_id: window.location.hostname,
+                    status: 'ready'
+                }
+            }, '*');
+            
+            window.parent.postMessage('VKWebAppInit', '*');
+            console.log('📱 Уведомили ВК о готовности приложения');
+        }
+        
+        // Дополнительно для VK Bridge API
+        if (typeof vkBridge !== 'undefined') {
+            vkBridge.send('VKWebAppInit');
+            console.log('📱 Отправлено VKWebAppInit через vkBridge');
+        }
+        
+        // Устанавливаем таймаут для принудительного показа приложения
+        setTimeout(() => {
+            const startScreen = document.getElementById('start-screen');
+            if (startScreen) {
+                startScreen.style.opacity = '1';
+                startScreen.style.visibility = 'visible';
+                console.log('🎯 Принудительно показываем приложение');
+            }
+        }, 1000);
+        
+    } catch (error) {
+        console.log('⚠️ Ошибка уведомления ВК:', error);
+    }
+}
 
 // ==================== УПРОЩЕННАЯ ЗАГРУЗКА СЛУЧАЕВ ====================
 async function loadClinicalCasesSimple() {
@@ -165,7 +233,7 @@ function showLoadingIndicator() {
         align-items: center;
         justify-content: center;
         color: white;
-        font-family: 'Inter', sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     `;
     
     loader.innerHTML = `
@@ -220,7 +288,7 @@ function showErrorMessage(message) {
         z-index: 10000;
         max-width: 500px;
         text-align: center;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         font-size: 16px;
         line-height: 1.5;
     `;
@@ -494,3 +562,46 @@ function shuffleArray(array) {
     }
     return newArray;
 }
+
+// ==================== ОБРАБОТЧИКИ СООБЩЕНИЙ ДЛЯ ВК ====================
+// Слушаем сообщения от ВК
+window.addEventListener('message', function(event) {
+    if (event.data && typeof event.data === 'object') {
+        console.log('📱 Получено сообщение от ВК:', event.data);
+        
+        // Обработка различных событий ВК
+        switch(event.data.type) {
+            case 'VKWebAppUpdateConfig':
+                console.log('📱 ВК обновил конфигурацию');
+                break;
+            case 'VKWebAppViewHide':
+                console.log('📱 ВК скрыл приложение');
+                break;
+            case 'VKWebAppViewRestore':
+                console.log('📱 ВК восстановил приложение');
+                break;
+        }
+    }
+});
+
+// ==================== ФИНАЛЬНАЯ ИНИЦИАЛИЗАЦИЯ ДЛЯ ВК ====================
+// Дополнительная инициализация через небольшую задержку
+setTimeout(() => {
+    try {
+        // Еще раз уведомляем ВК
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage('VKWebAppInit', '*');
+        }
+        
+        // Принудительно показываем интерфейс
+        const body = document.body;
+        if (body) {
+            body.style.opacity = '1';
+            body.style.visibility = 'visible';
+        }
+        
+        console.log('🎯 Финальная инициализация завершена');
+    } catch (error) {
+        console.log('⚠️ Ошибка финальной инициализации:', error);
+    }
+}, 2000);
