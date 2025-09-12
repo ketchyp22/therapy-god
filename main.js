@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('✅ TherapyGod готов к работе!');
         
         // Обновляем отображение пользователя если данные уже есть
-        if (userInfo) {
+        if (typeof userInfo !== 'undefined' && userInfo) {
             updateUserDisplay();
         }
         
