@@ -13,10 +13,22 @@
 </head>
 <body>
     <!-- Видео фон -->
-    <video class="video-background" autoplay muted loop playsinline>
+    <video class="video-background" autoplay muted loop playsinline preload="auto">
         <source src="video.mp4" type="video/mp4">
+        Ваш браузер не поддерживает видео.
     </video>
     <div class="video-overlay"></div>
+    
+    <!-- Принудительный запуск видео -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.querySelector('.video-background');
+            if (video) {
+                video.play().catch(e => console.log('Видео заблокировано браузером:', e));
+                console.log('Видео принудительно запущено');
+            }
+        });
+    </script>
     <!-- Видео фон -->
     <video class="video-background" autoplay muted loop>
         <source src="video.mp4" type="video/mp4">
