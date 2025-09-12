@@ -37,7 +37,15 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: var(--medical-dark);
+    /* Статичный градиентный фон вместо видео */
+    background: linear-gradient(135deg, 
+        #0f172a 0%, 
+        #1e293b 25%, 
+        #2563eb 50%, 
+        #1e293b 75%, 
+        #0f172a 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
     min-height: 100vh;
     color: var(--text-primary);
     padding: 20px;
@@ -48,31 +56,10 @@ body {
     overflow-x: hidden;
 }
 
-/* ==================== ВИДЕО ФОН ==================== */
-.video-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2;
-    object-fit: cover;
-    filter: brightness(0.3) blur(1px);
-}
-
-.video-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    background: linear-gradient(
-        135deg, 
-        rgba(15, 23, 42, 0.8) 0%, 
-        rgba(37, 99, 235, 0.1) 50%, 
-        rgba(15, 23, 42, 0.9) 100%
-    );
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* ==================== КОНТЕЙНЕР ==================== */
