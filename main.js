@@ -10,27 +10,47 @@ let gameState = {
 
 // ==================== КЛИНИЧЕСКИЕ СЛУЧАИ ====================
 let clinicalCases = {};
+let loadingAttempts = 0;
+const MAX_LOADING_ATTEMPTS = 3;
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Инициализация TherapyGod...');
+    console.log('🚀 Инициализация TherapyGod...');
+    
+    // Показываем индикатор загрузки
+    showLoadingIndicator();
     
     try {
-        await loadClinicalCases();
-        console.log('Клинические случаи загружены успешно');
-        setupEventHandlers();
-        console.log('TherapyGod готов к работе!');
-    } catch (error) {
-        console.error('КРИТИЧЕСКАЯ ОШИБКА:', error);
+        // Добавляем общий таймаут на всю загрузку
+        const loadingPromise = loadClinicalCasesSimple();
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout: загрузка заняла слишком много времени')), 10000);
+        });
         
-        // Показываем пользователю понятное сообщение
-        showErrorMessage('Не удалось загрузить клинические случаи. Попробуйте обновить страницу или обратитесь к администратору.');
+        await Promise.race([loadingPromise, timeoutPromise]);
+        
+        console.log('✅ Клинические случаи загружены успешно');
+        hideLoadingIndicator();
+        setupEventHandlers();
+        console.log('✅ TherapyGod готов к работе!');
+        
+    } catch (error) {
+        console.error('❌ ОШИБКА ЗАГРУЗКИ:', error);
+        hideLoadingIndicator();
+        
+        if (loadingAttempts < MAX_LOADING_ATTEMPTS) {
+            loadingAttempts++;
+            console.log(`🔄 Попытка перезагрузки ${loadingAttempts}/${MAX_LOADING_ATTEMPTS}...`);
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showErrorMessage(`Не удалось загрузить приложение после ${MAX_LOADING_ATTEMPTS} попыток. Попробуйте обновить страницу.`);
+        }
     }
 });
 
-// ==================== ЗАГРУЗКА СЛУЧАЕВ ИЗ ПАПКИ CASES ====================
-async function loadClinicalCases() {
-    console.log('Начинаем загрузку случаев из папки cases/...');
+// ==================== УПРОЩЕННАЯ ЗАГРУЗКА СЛУЧАЕВ ====================
+async function loadClinicalCasesSimple() {
+    console.log('📥 Начинаем упрощенную загрузку случаев...');
     
     const caseFiles = [
         { file: 'cases/cardiovascular.js', variable: 'cardiovascularCases', system: 'cardiovascular' },
@@ -41,122 +61,57 @@ async function loadClinicalCases() {
         { file: 'cases/renal.js', variable: 'renalCases', system: 'renal' }
     ];
 
-    // Загружаем все файлы
-    for (const caseFile of caseFiles) {
-        try {
-            console.log(`Загружаем ${caseFile.file}...`);
-            await loadScriptViaPolitics(caseFile.file);
-            console.log(`✓ Файл ${caseFile.file} загружен`);
-        } catch (error) {
-            console.error(`✗ Ошибка загрузки ${caseFile.file}:`, error);
-            throw new Error(`Не удалось загрузить файл ${caseFile.file}`);
-        }
-    }
-
-    // Проверяем, что все переменные доступны
-    console.log('Проверяем доступность переменных...');
+    // Загружаем все файлы параллельно, но с таймаутом
+    const loadPromises = caseFiles.map(caseFile => 
+        loadSingleScript(caseFile.file).then(() => caseFile)
+    );
     
+    console.log('⏳ Загружаем все скрипты параллельно...');
+    await Promise.all(loadPromises);
+    
+    // Даем время скриптам выполниться
+    console.log('⏳ Ожидаем выполнения скриптов...');
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Проверяем переменные
     clinicalCases = {};
     let totalCasesLoaded = 0;
 
     for (const caseFile of caseFiles) {
+        console.log(`🔍 Проверяем переменную ${caseFile.variable}...`);
+        
         const cases = window[caseFile.variable];
         
         if (!cases) {
-            console.error(`Переменная ${caseFile.variable} не найдена в ${caseFile.file}`);
-            throw new Error(`Переменная ${caseFile.variable} не экспортирована из ${caseFile.file}`);
+            throw new Error(`Переменная ${caseFile.variable} не найдена. Проверьте файл ${caseFile.file}`);
         }
         
-        if (!Array.isArray(cases)) {
-            console.error(`${caseFile.variable} не является массивом:`, cases);
-            throw new Error(`${caseFile.variable} должна быть массивом`);
+        if (!Array.isArray(cases) || cases.length === 0) {
+            throw new Error(`${caseFile.variable} не является массивом или пуст`);
         }
         
         clinicalCases[caseFile.system] = cases;
         totalCasesLoaded += cases.length;
         
-        console.log(`✓ ${caseFile.system}: загружено ${cases.length} случаев`);
+        console.log(`✅ ${caseFile.system}: загружено ${cases.length} случаев`);
     }
 
     if (totalCasesLoaded === 0) {
         throw new Error('Не загружено ни одного клинического случая');
     }
 
-    console.log(`🎉 УСПЕШНО! Всего загружено ${totalCasesLoaded} клинических случаев`);
-    console.log('Структура загруженных случаев:', clinicalCases);
+    console.log(`🎉 Успешно загружено ${totalCasesLoaded} клинических случаев`);
 }
 
-// ==================== УЛУЧШЕННАЯ ЗАГРУЗКА СКРИПТОВ ====================
-async function loadScriptViaPolitics(src) {
-    console.log(`🔄 Пробуем разные способы загрузки: ${src}`);
-    
-    // Способ 1: Fetch + eval (наиболее совместимый с ВК)
-    try {
-        console.log(`📥 Способ 1 - fetch: ${src}`);
-        const response = await fetch(src, {
-            method: 'GET',
-            cache: 'no-cache',
-            headers: {
-                'Content-Type': 'application/javascript'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const scriptContent = await response.text();
-        
-        if (!scriptContent || scriptContent.trim().length === 0) {
-            throw new Error('Пустой файл');
-        }
-        
-        // Безопасное выполнение кода
-        const script = document.createElement('script');
-        script.textContent = scriptContent;
-        script.setAttribute('data-source', src);
-        document.head.appendChild(script);
-        
-        console.log(`✅ Fetch загрузка успешна: ${src}`);
-        return;
-        
-    } catch (fetchError) {
-        console.warn(`❌ Fetch не сработал для ${src}:`, fetchError.message);
-    }
-    
-    // Способ 2: Классическая загрузка script тега
-    try {
-        console.log(`📥 Способ 2 - script tag: ${src}`);
-        await loadScriptClassic(src);
-        console.log(`✅ Script tag загрузка успешна: ${src}`);
-        return;
-        
-    } catch (scriptError) {
-        console.warn(`❌ Script tag не сработал для ${src}:`, scriptError.message);
-    }
-    
-    // Способ 3: XMLHttpRequest (для старых браузеров)
-    try {
-        console.log(`📥 Способ 3 - XMLHttpRequest: ${src}`);
-        await loadScriptXHR(src);
-        console.log(`✅ XHR загрузка успешна: ${src}`);
-        return;
-        
-    } catch (xhrError) {
-        console.warn(`❌ XHR не сработал для ${src}:`, xhrError.message);
-    }
-    
-    // Если все способы не сработали
-    throw new Error(`Все способы загрузки не сработали для ${src}`);
-}
-
-// ==================== КЛАССИЧЕСКАЯ ЗАГРУЗКА СКРИПТОВ ====================
-function loadScriptClassic(src) {
+// ==================== ПРОСТАЯ ЗАГРУЗКА ОДНОГО СКРИПТА ====================
+function loadSingleScript(src) {
     return new Promise((resolve, reject) => {
-        // Проверяем, не загружен ли уже скрипт
+        console.log(`📄 Загружаем скрипт: ${src}`);
+        
+        // Проверяем, не загружен ли уже
         const existingScript = document.querySelector(`script[src="${src}"]`);
         if (existingScript) {
-            console.log(`Скрипт ${src} уже загружен`);
+            console.log(`✅ Скрипт уже загружен: ${src}`);
             resolve();
             return;
         }
@@ -164,73 +119,93 @@ function loadScriptClassic(src) {
         const script = document.createElement('script');
         script.src = src;
         script.type = 'text/javascript';
-        script.async = false; // Важно для последовательной загрузки
+        script.async = false;
         
-        // Устанавливаем таймаут для загрузки
+        // Таймаут для каждого скрипта
         const timeout = setTimeout(() => {
             script.remove();
-            reject(new Error(`Таймаут загрузки скрипта ${src}`));
-        }, 15000); // 15 секунд
+            reject(new Error(`Таймаут загрузки скрипта: ${src}`));
+        }, 5000);
 
         script.onload = () => {
             clearTimeout(timeout);
-            console.log(`✓ Скрипт загружен: ${src}`);
+            console.log(`✅ Скрипт загружен: ${src}`);
             resolve();
         };
         
         script.onerror = (error) => {
             clearTimeout(timeout);
             script.remove();
-            console.error(`✗ Ошибка загрузки скрипта: ${src}`, error);
-            reject(new Error(`Не удалось загрузить скрипт: ${src}`));
+            console.error(`❌ Ошибка загрузки: ${src}`, error);
+            reject(new Error(`Не удалось загрузить: ${src}`));
         };
 
-        // Добавляем скрипт в head
         document.head.appendChild(script);
-        console.log(`Добавлен скрипт в DOM: ${src}`);
     });
 }
 
-// ==================== ЗАГРУЗКА ЧЕРЕЗ XMLHttpRequest ====================
-function loadScriptXHR(src) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    try {
-                        const script = document.createElement('script');
-                        script.textContent = xhr.responseText;
-                        script.setAttribute('data-source', src);
-                        document.head.appendChild(script);
-                        resolve();
-                    } catch (error) {
-                        reject(new Error(`Ошибка выполнения скрипта ${src}: ${error.message}`));
-                    }
-                } else {
-                    reject(new Error(`HTTP ${xhr.status} для ${src}`));
-                }
+// ==================== ИНДИКАТОР ЗАГРУЗКИ ====================
+function showLoadingIndicator() {
+    // Убираем все предыдущие индикаторы
+    const existingLoader = document.getElementById('loading-indicator');
+    if (existingLoader) existingLoader.remove();
+    
+    const loader = document.createElement('div');
+    loader.id = 'loading-indicator';
+    loader.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.95);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: 'Inter', sans-serif;
+    `;
+    
+    loader.innerHTML = `
+        <div style="
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(37, 99, 235, 0.3);
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        "></div>
+        <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">
+            Загрузка TherapyGod...
+        </div>
+        <div style="font-size: 14px; opacity: 0.7;">
+            Подготавливаем клинические случаи
+        </div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
             }
-        };
-        
-        xhr.onerror = function() {
-            reject(new Error(`Сетевая ошибка при загрузке ${src}`));
-        };
-        
-        xhr.ontimeout = function() {
-            reject(new Error(`Таймаут при загрузке ${src}`));
-        };
-        
-        xhr.timeout = 15000; // 15 секунд
-        xhr.open('GET', src, true);
-        xhr.send();
-    });
+        </style>
+    `;
+    
+    document.body.appendChild(loader);
 }
 
-// ==================== ПОКАЗ ОШИБКИ ПОЛЬЗОВАТЕЛЮ ====================
+function hideLoadingIndicator() {
+    const loader = document.getElementById('loading-indicator');
+    if (loader) {
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => loader.remove(), 300);
+    }
+}
+
+// ==================== ПОКАЗ ОШИБКИ ====================
 function showErrorMessage(message) {
-    // Создаем красивое сообщение об ошибке
     const errorDiv = document.createElement('div');
     errorDiv.style.cssText = `
         position: fixed;
@@ -245,7 +220,7 @@ function showErrorMessage(message) {
         z-index: 10000;
         max-width: 500px;
         text-align: center;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         font-size: 16px;
         line-height: 1.5;
     `;
@@ -262,31 +237,26 @@ function showErrorMessage(message) {
             font-weight: bold;
             cursor: pointer;
             font-size: 14px;
+            margin-right: 10px;
         ">🔄 Обновить страницу</button>
+        <button onclick="this.parentElement.remove()" style="
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        ">✕ Закрыть</button>
     `;
     
     document.body.appendChild(errorDiv);
-    
-    // Автоматически убираем через 10 секунд
-    setTimeout(() => {
-        if (errorDiv.parentNode) {
-            errorDiv.parentNode.removeChild(errorDiv);
-        }
-    }, 10000);
 }
 
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
 function setupEventHandlers() {
-    console.log('Настройка обработчиков событий...');
-
-    // Принудительное отображение стартового экрана
-    const startScreen = document.getElementById('start-screen');
-    if (startScreen) {
-        startScreen.style.display = 'block';
-        startScreen.style.visibility = 'visible';
-        startScreen.style.opacity = '1';
-        console.log('🔧 Принудительно активировал start-screen');
-    }
+    console.log('⚙️ Настройка обработчиков событий...');
 
     // Выбор системы органов
     const systemCards = document.querySelectorAll('.system-card');
@@ -308,94 +278,75 @@ function setupEventHandlers() {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener('click', handler);
-            console.log(`✓ Обработчик установлен для кнопки: ${id}`);
+            console.log(`✅ Обработчик установлен для: ${id}`);
         } else {
-            console.warn(`⚠ Кнопка не найдена: ${id}`);
+            console.warn(`⚠️ Кнопка не найдена: ${id}`);
         }
     });
+
+    console.log('✅ Все обработчики настроены');
 }
 
 // ==================== ВЫБОР СИСТЕМЫ ====================
 function selectSystem(card) {
-    console.log('Выбор системы:', card.dataset.system);
+    console.log('🎯 Выбор системы:', card.dataset.system);
     
-    // Убираем активный класс со всех карточек
     document.querySelectorAll('.system-card').forEach(c => c.classList.remove('active'));
-    
-    // Добавляем активный класс к выбранной
     card.classList.add('active');
-    
-    // Сохраняем выбранную систему
     gameState.currentSystem = card.dataset.system;
     
-    console.log('Выбрана система:', gameState.currentSystem);
+    console.log('✅ Выбрана система:', gameState.currentSystem);
 }
 
 // ==================== ЗАПУСК ИГРЫ ====================
 function startCases() {
-    console.log('=== ЗАПУСК ИГРЫ ===');
+    console.log('🎮 === ЗАПУСК ИГРЫ ===');
     console.log('Выбранная система:', gameState.currentSystem);
     
-    // Проверяем, что случаи загружены
     if (Object.keys(clinicalCases).length === 0) {
-        showErrorMessage('Клинические случаи не загружены! Обновите страницу.');
+        showErrorMessage('Клинические случаи не загружены! Попробуйте обновить страницу.');
         return;
     }
     
-    // Получаем случаи для выбранной системы
     const systemCases = clinicalCases[gameState.currentSystem];
     
-    console.log('Случаи для системы:', systemCases);
-    
     if (!systemCases || systemCases.length === 0) {
-        showErrorMessage(`Случаи для системы "${gameState.currentSystem}" не найдены!\nПроверьте файл cases/${gameState.currentSystem}.js`);
+        showErrorMessage(`Случаи для системы "${gameState.currentSystem}" не найдены!`);
         return;
     }
 
-    console.log(`Найдено ${systemCases.length} случаев для системы ${gameState.currentSystem}`);
+    console.log(`📋 Найдено ${systemCases.length} случаев для системы ${gameState.currentSystem}`);
 
-    // Перемешиваем и берем нужное количество случаев
     gameState.currentCases = shuffleArray([...systemCases]).slice(0, Math.min(gameState.totalCases, systemCases.length));
-    
-    console.log(`Выбрано ${gameState.currentCases.length} случаев для игры`);
-
-    // Сброс состояния
     gameState.currentCaseIndex = 0;
     gameState.score = 0;
     gameState.selectedOption = null;
 
-    // Переключаем на экран случая
     const startScreen = document.getElementById('start-screen');
     const caseContainer = document.getElementById('case-container');
     
     if (startScreen) startScreen.style.display = 'none';
     if (caseContainer) {
         caseContainer.style.display = 'block';
+        loadCase();
     } else {
-        console.error('Элемент case-container не найден!');
-        return;
+        showErrorMessage('Элемент case-container не найден!');
     }
-
-    // Загружаем первый случай
-    loadCase();
 }
 
 // ==================== ЗАГРУЗКА СЛУЧАЯ ====================
 function loadCase() {
-    console.log(`=== ЗАГРУЗКА СЛУЧАЯ ${gameState.currentCaseIndex + 1} ===`);
+    console.log(`📄 === ЗАГРУЗКА СЛУЧАЯ ${gameState.currentCaseIndex + 1} ===`);
     
     if (gameState.currentCaseIndex >= gameState.currentCases.length) {
-        console.log('Все случаи пройдены, показываем результаты');
         showResults();
         return;
     }
 
     const case_data = gameState.currentCases[gameState.currentCaseIndex];
-    console.log('Данные текущего случая:', case_data);
-    
     gameState.selectedOption = null;
 
-    // Обновляем счетчик и прогресс
+    // Обновляем UI
     const caseCounter = document.getElementById('case-counter');
     const progressBar = document.getElementById('progress-bar');
     
@@ -408,43 +359,35 @@ function loadCase() {
         progressBar.style.width = `${progress}%`;
     }
 
-    // Формируем содержимое случая
+    // Формируем содержимое
     const caseContent = document.getElementById('case-content');
-    if (!caseContent) {
-        console.error('Элемент case-content не найден!');
-        return;
+    if (caseContent) {
+        caseContent.innerHTML = `
+            <div class="patient-info">Пациент: ${case_data.patient}</div>
+            <div class="case-description">
+                <strong>Жалобы:</strong> ${case_data.complaint}<br><br>
+                <strong>Анамнез заболевания:</strong> ${case_data.history}<br><br>
+                <strong>Объективный осмотр:</strong> ${case_data.examination}
+            </div>
+            ${case_data.additional ? `<div class="case-data"><strong>Дополнительные данные:</strong><br>${case_data.additional}</div>` : ''}
+            <div class="case-question">${case_data.question}</div>
+        `;
     }
-    
-    caseContent.innerHTML = `
-        <div class="patient-info">Пациент: ${case_data.patient}</div>
-        <div class="case-description">
-            <strong>Жалобы:</strong> ${case_data.complaint}<br><br>
-            <strong>Анамнез заболевания:</strong> ${case_data.history}<br><br>
-            <strong>Объективный осмотр:</strong> ${case_data.examination}
-        </div>
-        ${case_data.additional ? `<div class="case-data"><strong>Дополнительные данные:</strong><br>${case_data.additional}</div>` : ''}
-        <div class="case-question">${case_data.question}</div>
-    `;
 
     // Создаем варианты ответов
     const optionsContainer = document.getElementById('options');
-    if (!optionsContainer) {
-        console.error('Элемент options не найден!');
-        return;
+    if (optionsContainer) {
+        optionsContainer.innerHTML = '';
+        
+        case_data.options.forEach((option, index) => {
+            const optionElement = document.createElement('div');
+            optionElement.classList.add('option');
+            optionElement.textContent = option;
+            optionElement.dataset.index = index;
+            optionElement.addEventListener('click', () => selectOption(optionElement, index));
+            optionsContainer.appendChild(optionElement);
+        });
     }
-    
-    optionsContainer.innerHTML = '';
-    
-    case_data.options.forEach((option, index) => {
-        const optionElement = document.createElement('div');
-        optionElement.classList.add('option');
-        optionElement.textContent = option;
-        optionElement.dataset.index = index;
-        optionElement.addEventListener('click', () => selectOption(optionElement, index));
-        optionsContainer.appendChild(optionElement);
-    });
-
-    console.log(`Создано ${case_data.options.length} вариантов ответов`);
 
     // Скрываем объяснение и делаем кнопку неактивной
     const explanation = document.getElementById('explanation');
@@ -453,25 +396,17 @@ function loadCase() {
     if (explanation) explanation.classList.remove('show');
     if (nextBtn) nextBtn.disabled = true;
 
-    console.log('Случай загружен успешно');
+    console.log('✅ Случай загружен успешно');
 }
 
 // ==================== ВЫБОР ОТВЕТА ====================
 function selectOption(element, index) {
-    console.log(`Выбран ответ ${index}`);
-    
-    if (gameState.selectedOption !== null) {
-        console.log('Ответ уже выбран, игнорируем');
-        return;
-    }
+    if (gameState.selectedOption !== null) return;
 
     gameState.selectedOption = index;
     const case_data = gameState.currentCases[gameState.currentCaseIndex];
     const isCorrect = index === case_data.correct;
 
-    console.log(`Правильный ответ: ${case_data.correct}, выбран: ${index}, корректно: ${isCorrect}`);
-
-    // Подсвечиваем правильный и неправильный ответы
     const options = document.querySelectorAll('.option');
     if (options[case_data.correct]) {
         options[case_data.correct].classList.add('correct');
@@ -481,37 +416,27 @@ function selectOption(element, index) {
         element.classList.add('wrong');
     }
 
-    // Отключаем все варианты
     options.forEach(opt => opt.style.pointerEvents = 'none');
 
-    // Показываем объяснение
     const explanationText = document.getElementById('explanation-text');
     const explanation = document.getElementById('explanation');
     
     if (explanationText) explanationText.textContent = case_data.explanation;
     if (explanation) explanation.classList.add('show');
 
-    // Включаем кнопку следующего случая
     const nextBtn = document.getElementById('next-case');
     if (nextBtn) nextBtn.disabled = false;
 
-    // Увеличиваем счет, если правильно
-    if (isCorrect) {
-        gameState.score++;
-        console.log(`Счет увеличен: ${gameState.score}`);
-    }
+    if (isCorrect) gameState.score++;
 }
 
-// ==================== СЛЕДУЮЩИЙ СЛУЧАЙ ====================
+// ==================== НАВИГАЦИЯ ====================
 function nextCase() {
-    console.log('Переход к следующему случаю');
     gameState.currentCaseIndex++;
     loadCase();
 }
 
-// ==================== ВЫХОД ИЗ ИГРЫ ====================
 function exitCases() {
-    console.log('Выход из игры');
     const caseContainer = document.getElementById('case-container');
     const startScreen = document.getElementById('start-screen');
     
@@ -519,9 +444,7 @@ function exitCases() {
     if (startScreen) startScreen.style.display = 'block';
 }
 
-// ==================== ПЕРЕЗАПУСК ====================
 function restartCases() {
-    console.log('Перезапуск игры');
     const resultsContainer = document.getElementById('results-container');
     const startScreen = document.getElementById('start-screen');
     
@@ -531,9 +454,6 @@ function restartCases() {
 
 // ==================== ПОКАЗ РЕЗУЛЬТАТОВ ====================
 function showResults() {
-    console.log('=== ПОКАЗ РЕЗУЛЬТАТОВ ===');
-    console.log(`Правильных ответов: ${gameState.score} из ${gameState.currentCases.length}`);
-    
     const caseContainer = document.getElementById('case-container');
     const resultsContainer = document.getElementById('results-container');
     
@@ -541,7 +461,6 @@ function showResults() {
     if (resultsContainer) resultsContainer.style.display = 'block';
 
     const percentage = Math.round((gameState.score / gameState.currentCases.length) * 100);
-    console.log(`Процент правильных ответов: ${percentage}%`);
     
     const percentageElement = document.getElementById('percentage');
     const correctAnswers = document.getElementById('correct-answers');
@@ -575,103 +494,3 @@ function shuffleArray(array) {
     }
     return newArray;
 }
-
-// ==================== ДИАГНОСТИЧЕСКИЕ ФУНКЦИИ ====================
-function diagnoseApp() {
-    console.log('=== 🔍 ДИАГНОСТИКА THERAPYGOD ===');
-    
-    // Проверка элементов
-    const startScreen = document.getElementById('start-screen');
-    const caseContainer = document.getElementById('case-container');
-    const systemsGrid = document.querySelector('.systems-grid');
-    const container = document.querySelector('.container');
-    
-    console.log('📋 Проверка элементов:');
-    console.log('  start-screen найден:', !!startScreen);
-    console.log('  case-container найден:', !!caseContainer);
-    console.log('  systems-grid найден:', !!systemsGrid);
-    console.log('  container найден:', !!container);
-    
-    if (startScreen) {
-        const styles = getComputedStyle(startScreen);
-        console.log('👁️ Стили start-screen:');
-        console.log('  display:', styles.display);
-        console.log('  visibility:', styles.visibility);
-        console.log('  opacity:', styles.opacity);
-        console.log('  position:', styles.position);
-        console.log('  z-index:', styles.zIndex);
-        console.log('  width:', styles.width);
-        console.log('  height:', styles.height);
-    }
-    
-    // Проверка CSS
-    const bodyStyles = getComputedStyle(document.body);
-    console.log('🎨 Стили body:');
-    console.log('  background:', bodyStyles.background.substring(0, 100));
-    console.log('  color:', bodyStyles.color);
-    console.log('  font-family:', bodyStyles.fontFamily.substring(0, 50));
-    console.log('  display:', bodyStyles.display);
-    
-    // Проверка загрузки CSS
-    const cssLinks = document.querySelectorAll('link[rel="stylesheet"]');
-    console.log('📎 CSS файлы (' + cssLinks.length + '):');
-    Array.from(cssLinks).forEach((link, index) => {
-        console.log(`  CSS ${index + 1}:`, link.href);
-        console.log('  Загружен:', link.sheet ? 'ДА' : 'НЕТ');
-    });
-    
-    // Проверка переменных игры
-    if (typeof gameState !== 'undefined') {
-        console.log('🎮 GameState:', gameState);
-    }
-    
-    if (typeof clinicalCases !== 'undefined') {
-        console.log('🏥 Clinical Cases загружены:', Object.keys(clinicalCases).length, 'систем');
-    }
-    
-    console.log('=== ✅ ДИАГНОСТИКА ЗАВЕРШЕНА ===');
-}
-
-// Функция принудительного показа
-function forceShowApp() {
-    console.log('🔧 ПРИНУДИТЕЛЬНОЕ ОТОБРАЖЕНИЕ');
-    
-    const startScreen = document.getElementById('start-screen');
-    const caseContainer = document.getElementById('case-container');
-    const resultsContainer = document.getElementById('results-container');
-    
-    if (startScreen) {
-        startScreen.style.display = 'block';
-        startScreen.style.visibility = 'visible';
-        startScreen.style.opacity = '1';
-        startScreen.style.position = 'relative';
-        startScreen.style.zIndex = '1';
-        console.log('✅ start-screen принудительно показан');
-    }
-    
-    if (caseContainer) {
-        caseContainer.style.display = 'none';
-        console.log('✅ case-container скрыт');
-    }
-    
-    if (resultsContainer) {
-        resultsContainer.style.display = 'none';
-        console.log('✅ results-container скрыт');
-    }
-    
-    // Принудительные стили для body
-    document.body.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)';
-    document.body.style.minHeight = '100vh';
-    document.body.style.color = '#ffffff';
-    document.body.style.display = 'flex';
-    document.body.style.alignItems = 'center';
-    document.body.style.justifyContent = 'center';
-    
-    console.log('🎯 Приложение должно быть видно!');
-}
-
-// Автоматическая диагностика через 3 секунды
-setTimeout(function() {
-    console.log('🤖 Автоматическая диагностика через 3 секунды...');
-    diagnoseApp();
-}, 3000);
