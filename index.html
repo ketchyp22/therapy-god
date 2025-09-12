@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TherapyGod - Прокачай клиническое мышление</title>
     
-    <!-- Шрифты -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- VK Bridge - ОБЯЗАТЕЛЬНО для ВКонтакте -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     
     <!-- Стили -->
     <link rel="stylesheet" href="styles.css">
@@ -165,6 +164,17 @@
             </div>
         </div>
     </div>
+
+    <!-- VK Bridge инициализация ПЕРЕД всеми остальными скриптами -->
+    <script>
+        // Инициализация VK Bridge
+        if (typeof vkBridge !== 'undefined') {
+            vkBridge.send('VKWebAppInit');
+            console.log('🌉 VK Bridge инициализирован');
+        } else {
+            console.log('⚠️ VK Bridge не найден');
+        }
+    </script>
 
     <!-- Подключение скриптов случаев -->
     <script src="cases/cardiovascular.js"></script>
