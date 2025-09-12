@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         setupEventHandlers();
         console.log('✅ TherapyGod готов к работе!');
         
+        // Обновляем отображение пользователя если данные уже есть
+        if (userInfo) {
+            updateUserDisplay();
+        }
+        
         // Уведомляем ВК о готовности после полной загрузки
         notifyVKAppReady();
         
