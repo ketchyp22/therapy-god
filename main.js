@@ -1,3 +1,21 @@
+// ==================== VK BRIDGE ИНИЦИАЛИЗАЦИЯ ====================
+// Инициализация VK Bridge в самом начале
+if (typeof vkBridge !== 'undefined') {
+    vkBridge.send('VKWebAppInit')
+        .then(() => {
+            console.log('✅ VK Bridge успешно инициализирован');
+            return vkBridge.send('VKWebAppGetUserInfo');
+        })
+        .then((userInfo) => {
+            console.log('👤 Информация о пользователе:', userInfo);
+        })
+        .catch((error) => {
+            console.log('❌ Ошибка VK Bridge:', error);
+        });
+} else {
+    console.log('⚠️ VK Bridge недоступен');
+}
+
 // ==================== СОСТОЯНИЕ ИГРЫ ====================
 let gameState = {
     currentSystem: 'cardiovascular',
@@ -13,33 +31,6 @@ let clinicalCases = {};
 let loadingAttempts = 0;
 const MAX_LOADING_ATTEMPTS = 3;
 
-// ==================== ИНИЦИАЛИЗАЦИЯ ДЛЯ ВК ====================
-// Уведомляем ВК что приложение инициализируется
-if (typeof window !== 'undefined') {
-    // Для ВК приложений
-    if (window.parent && window.parent !== window) {
-        try {
-            window.parent.postMessage('VKWebAppInit', '*');
-            console.log('📱 Отправлено сообщение VKWebAppInit для ВК');
-        } catch (e) {
-            console.log('⚠️ Не удалось отправить VKWebAppInit:', e);
-        }
-    }
-    
-    // Инициализация VK API если доступно
-    if (typeof VK !== 'undefined' && VK.init) {
-        try {
-            VK.init(function() {
-                console.log('✅ VK API инициализирован успешно');
-            }, function() {
-                console.log('❌ Ошибка инициализации VK API');
-            }, '5.199');
-        } catch (e) {
-            console.log('⚠️ VK API недоступен:', e);
-        }
-    }
-}
-
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Инициализация TherapyGod...');
@@ -48,6 +39,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     showLoadingIndicator();
     
     try {
+        // Дополнительная инициализация VK Bridge
+        if (typeof vkBridge !== 'undefined') {
+            vkBridge.send('VKWebAppInit');
+            console.log('🌉 VK Bridge повторно инициализирован');
+        }
+        
         // Добавляем общий таймаут на всю загрузку
         const loadingPromise = loadClinicalCasesSimple();
         const timeoutPromise = new Promise((_, reject) => {
@@ -81,24 +78,16 @@ document.addEventListener('DOMContentLoaded', async function() {
 // ==================== УВЕДОМЛЕНИЕ ВК О ГОТОВНОСТИ ====================
 function notifyVKAppReady() {
     try {
-        // Для ВК приложений отправляем сообщение о готовности
-        if (window.parent && window.parent !== window) {
-            window.parent.postMessage({
-                type: 'VKWebAppUpdateConfig',
-                data: {
-                    app_id: window.location.hostname,
-                    status: 'ready'
-                }
-            }, '*');
-            
-            window.parent.postMessage('VKWebAppInit', '*');
-            console.log('📱 Уведомили ВК о готовности приложения');
-        }
-        
-        // Дополнительно для VK Bridge API
+        // Основной способ через VK Bridge
         if (typeof vkBridge !== 'undefined') {
             vkBridge.send('VKWebAppInit');
-            console.log('📱 Отправлено VKWebAppInit через vkBridge');
+            console.log('📱 Отправлено VKWebAppInit через VK Bridge');
+        }
+        
+        // Дополнительные способы для совместимости
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage('VKWebAppInit', '*');
+            console.log('📱 Отправлено VKWebAppInit через postMessage');
         }
         
         // Устанавливаем таймаут для принудительного показа приложения
@@ -588,9 +577,10 @@ window.addEventListener('message', function(event) {
 // Дополнительная инициализация через небольшую задержку
 setTimeout(() => {
     try {
-        // Еще раз уведомляем ВК
-        if (window.parent && window.parent !== window) {
-            window.parent.postMessage('VKWebAppInit', '*');
+        // Еще раз уведомляем ВК через VK Bridge
+        if (typeof vkBridge !== 'undefined') {
+            vkBridge.send('VKWebAppInit');
+            console.log('🌉 Повторная инициализация VK Bridge');
         }
         
         // Принудительно показываем интерфейс
