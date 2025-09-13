@@ -49,6 +49,93 @@ function updateUserProfile(userInfo) {
     }
 }
 
+// ==================== СТАТИСТИКА ПОЛЬЗОВАТЕЛЯ ====================
+let userStats = {
+    totalCases: 0,
+    correctAnswers: 0,
+    bestStreak: 0,
+    currentStreak: 0,
+    level: 'Новичок'
+};
+
+// Загружаем статистику из localStorage
+function loadUserStats() {
+    try {
+        const saved = localStorage.getItem('therapyGodStats');
+        if (saved) {
+            userStats = {...userStats, ...JSON.parse(saved)};
+        }
+        updateStatsDisplay();
+        console.log('📊 Статистика загружена:', userStats);
+    } catch (error) {
+        console.log('⚠️ Ошибка загрузки статистики:', error);
+    }
+}
+
+// Сохраняем статистику в localStorage
+function saveUserStats() {
+    try {
+        localStorage.setItem('therapyGodStats', JSON.stringify(userStats));
+        console.log('💾 Статистика сохранена');
+    } catch (error) {
+        console.log('⚠️ Ошибка сохранения статистики:', error);
+    }
+}
+
+// Обновляем отображение статистики
+function updateStatsDisplay() {
+    try {
+        const accuracy = userStats.totalCases > 0 ? 
+            Math.round((userStats.correctAnswers / userStats.totalCases) * 100) : 0;
+        
+        // Определяем уровень врача
+        let level = 'Новичок';
+        if (userStats.totalCases >= 100 && accuracy >= 90) level = 'Эксперт';
+        else if (userStats.totalCases >= 50 && accuracy >= 80) level = 'Опытный';
+        else if (userStats.totalCases >= 20 && accuracy >= 70) level = 'Практикант';
+        
+        userStats.level = level;
+        
+        // Обновляем DOM
+        const statNumbers = document.querySelectorAll('.stat-number');
+        if (statNumbers.length >= 4) {
+            statNumbers[0].textContent = userStats.totalCases;
+            statNumbers[1].textContent = accuracy + '%';
+            statNumbers[2].textContent = userStats.bestStreak;
+            statNumbers[3].textContent = userStats.level;
+        }
+        
+        console.log('📊 Статистика обновлена:', {
+            totalCases: userStats.totalCases,
+            accuracy: accuracy + '%',
+            bestStreak: userStats.bestStreak,
+            level: userStats.level
+        });
+    } catch (error) {
+        console.log('⚠️ Ошибка обновления статистики:', error);
+    }
+}
+
+// Обновляем статистику после ответа
+function updateStatsAfterAnswer(isCorrect) {
+    userStats.totalCases++;
+    
+    if (isCorrect) {
+        userStats.correctAnswers++;
+        userStats.currentStreak++;
+        if (userStats.currentStreak > userStats.bestStreak) {
+            userStats.bestStreak = userStats.currentStreak;
+        }
+    } else {
+        userStats.currentStreak = 0;
+    }
+    
+    saveUserStats();
+    updateStatsDisplay();
+    
+    console.log(`📈 Статистика обновлена: ${isCorrect ? 'Правильно' : 'Неправильно'}`);
+}
+
 // ==================== СОСТОЯНИЕ ИГРЫ ====================
 let gameState = {
     currentSystem: 'cardiovascular',
@@ -67,6 +154,9 @@ const MAX_LOADING_ATTEMPTS = 2;
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Инициализация TherapyGod...');
+    
+    // Загружаем статистику пользователя
+    loadUserStats();
     
     // Показываем индикатор загрузки
     showLoadingIndicator();
@@ -92,6 +182,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Пробуем продолжить работу с уже загруженными данными
         try {
             setupEventHandlers();
+            loadUserStats(); // Загружаем статистику даже при ошибке
             console.log('⚠️ Продолжаем работу без полной загрузки');
         } catch (e) {
             console.log('❌ Критическая ошибка:', e);
@@ -365,6 +456,9 @@ function setupEventHandlers() {
         }
     });
 
+    // Загружаем статистику после настройки обработчиков
+    loadUserStats();
+
     console.log('✅ Все обработчики настроены');
 }
 
@@ -509,6 +603,9 @@ function selectOption(element, index) {
     if (nextBtn) nextBtn.disabled = false;
 
     if (isCorrect) gameState.score++;
+    
+    // Обновляем статистику после каждого ответа
+    updateStatsAfterAnswer(isCorrect);
 }
 
 // ==================== НАВИГАЦИЯ ====================
@@ -523,6 +620,9 @@ function exitCases() {
     
     if (caseContainer) caseContainer.style.display = 'none';
     if (startScreen) startScreen.style.display = 'block';
+    
+    // Обновляем статистику при выходе
+    updateStatsDisplay();
 }
 
 function restartCases() {
@@ -531,6 +631,9 @@ function restartCases() {
     
     if (resultsContainer) resultsContainer.style.display = 'none';
     if (startScreen) startScreen.style.display = 'block';
+    
+    // Обновляем статистику при перезапуске
+    updateStatsDisplay();
 }
 
 // ==================== ПОКАЗ РЕЗУЛЬТАТОВ ====================
@@ -564,6 +667,9 @@ function showResults() {
     }
     
     if (resultMessage) resultMessage.textContent = resultText;
+    
+    // Финально обновляем статистику
+    updateStatsDisplay();
 }
 
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
@@ -613,6 +719,9 @@ setTimeout(() => {
             body.style.opacity = '1';
             body.style.visibility = 'visible';
         }
+        
+        // Финально обновляем статистику
+        updateStatsDisplay();
         
         console.log('🎯 Финальная инициализация завершена');
     } catch (error) {
