@@ -12,10 +12,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Видео фон -->
+    <!-- Видео фон (исправлено) -->
     <video class="video-background" autoplay muted loop playsinline preload="auto">
+        <source src="https://cdn.pixabay.com/vimeo/460726258/medical-46072.mp4?width=1920&hash=97cf3c11bf7f6b1e0e62dc6d78bd62f27a6cd7c3" type="video/mp4">
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
         <source src="video.mp4" type="video/mp4">
-        Ваш браузер не поддерживает видео.
     </video>
     <div class="video-overlay"></div>
     
@@ -24,16 +25,28 @@
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.querySelector('.video-background');
             if (video) {
-                video.play().catch(e => console.log('Видео заблокировано браузером:', e));
-                console.log('Видео принудительно запущено');
+                // Попытка воспроизвести с задержкой
+                setTimeout(() => {
+                    video.play().catch(e => {
+                        console.log('Видео заблокировано браузером:', e);
+                        // Если видео не работает, добавляем анимированный фон
+                        document.body.style.background = 'linear-gradient(-45deg, #0f172a, #1e293b, #334155, #475569)';
+                        document.body.style.backgroundSize = '400% 400%';
+                        document.body.style.animation = 'gradientShift 15s ease infinite';
+                    });
+                }, 500);
             }
         });
     </script>
-    <!-- Видео фон -->
-    <video class="video-background" autoplay muted loop>
-        <source src="video.mp4" type="video/mp4">
-    </video>
-    <div class="video-overlay"></div>
+    
+    <style>
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+
     <!-- Стартовый экран -->
     <div id="start-screen">
         <div class="container">
