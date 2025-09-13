@@ -142,8 +142,8 @@ let gameState = {
     currentCases: [],
     currentCaseIndex: 0,
     score: 0,
-    selectedOption: null,
-    tempSelectedOption: null,
+    selectedOption: null,    // Подтвержденный ответ
+    tempSelectedOption: null, // Временно выбранный ответ
     totalCases: 5
 };
 
@@ -442,6 +442,7 @@ function setupEventHandlers() {
     // Кнопки управления
     const buttons = {
         'start-cases': startCases,
+        'confirm-answer': confirmAnswer,
         'next-case': nextCase,
         'exit-cases': exitCases,
         'restart-cases': restartCases
@@ -497,6 +498,7 @@ function startCases() {
     gameState.currentCaseIndex = 0;
     gameState.score = 0;
     gameState.selectedOption = null;
+    gameState.tempSelectedOption = null;
 
     const startScreen = document.getElementById('start-screen');
     const caseContainer = document.getElementById('case-container');
@@ -521,6 +523,7 @@ function loadCase() {
 
     const case_data = gameState.currentCases[gameState.currentCaseIndex];
     gameState.selectedOption = null;
+    gameState.tempSelectedOption = null;
 
     // Обновляем UI
     const caseCounter = document.getElementById('case-counter');
@@ -565,48 +568,100 @@ function loadCase() {
         });
     }
 
-    // Скрываем объяснение и делаем кнопку неактивной
+    // Сбрасываем состояние кнопок и объяснений
     const explanation = document.getElementById('explanation');
+    const confirmBtn = document.getElementById('confirm-answer');
     const nextBtn = document.getElementById('next-case');
     
     if (explanation) explanation.classList.remove('show');
-    if (nextBtn) nextBtn.disabled = true;
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Выберите вариант';
+        confirmBtn.style.display = 'block';
+    }
+    if (nextBtn) {
+        nextBtn.disabled = true;
+        nextBtn.style.display = 'none';
+    }
 
     console.log('✅ Случай загружен успешно');
 }
 
-// ==================== ВЫБОР ОТВЕТА ====================
+// ==================== ВЫБОР ОТВЕТА (ИСПРАВЛЕННАЯ ВЕРСИЯ) ====================
 function selectOption(element, index) {
+    // Если ответ уже подтвержден, ничего не делаем
     if (gameState.selectedOption !== null) return;
-
-    gameState.selectedOption = index;
-    const case_data = gameState.currentCases[gameState.currentCaseIndex];
-    const isCorrect = index === case_data.correct;
-
+    
+    // Снимаем выделение с предыдущего варианта
     const options = document.querySelectorAll('.option');
+    options.forEach(opt => opt.classList.remove('selected'));
+    
+    // Выделяем выбранный вариант
+    element.classList.add('selected');
+    gameState.tempSelectedOption = index;
+    
+    // Активируем кнопку подтверждения
+    const confirmBtn = document.getElementById('confirm-answer');
+    if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Подтвердить ответ';
+    }
+    
+    console.log(`Выбран вариант ${index + 1}`);
+}
+
+// ==================== ПОДТВЕРЖДЕНИЕ ОТВЕТА ====================
+function confirmAnswer() {
+    if (gameState.tempSelectedOption === null) return;
+    
+    // Подтверждаем выбор
+    gameState.selectedOption = gameState.tempSelectedOption;
+    
+    const case_data = gameState.currentCases[gameState.currentCaseIndex];
+    const isCorrect = gameState.selectedOption === case_data.correct;
+    
+    const options = document.querySelectorAll('.option');
+    
+    // Показываем правильный ответ
     if (options[case_data.correct]) {
         options[case_data.correct].classList.add('correct');
     }
     
-    if (!isCorrect) {
-        element.classList.add('wrong');
+    // Показываем неправильный ответ, если выбран не тот
+    if (!isCorrect && options[gameState.selectedOption]) {
+        options[gameState.selectedOption].classList.add('wrong');
     }
 
-    options.forEach(opt => opt.style.pointerEvents = 'none');
+    // Блокируем все варианты
+    options.forEach(opt => {
+        opt.style.pointerEvents = 'none';
+        opt.classList.remove('selected');
+    });
 
+    // Показываем объяснение
     const explanationText = document.getElementById('explanation-text');
     const explanation = document.getElementById('explanation');
     
     if (explanationText) explanationText.textContent = case_data.explanation;
     if (explanation) explanation.classList.add('show');
 
+    // Переключаем кнопки
+    const confirmBtn = document.getElementById('confirm-answer');
     const nextBtn = document.getElementById('next-case');
-    if (nextBtn) nextBtn.disabled = false;
+    
+    if (confirmBtn) confirmBtn.style.display = 'none';
+    if (nextBtn) {
+        nextBtn.disabled = false;
+        nextBtn.style.display = 'block';
+    }
 
+    // Обновляем счет
     if (isCorrect) gameState.score++;
     
     // Обновляем статистику после каждого ответа
     updateStatsAfterAnswer(isCorrect);
+    
+    console.log(`${isCorrect ? '✅ Правильный' : '❌ Неправильный'} ответ. Счет: ${gameState.score}/${gameState.currentCaseIndex + 1}`);
 }
 
 // ==================== НАВИГАЦИЯ ====================
