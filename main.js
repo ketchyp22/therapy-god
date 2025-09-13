@@ -1,4 +1,6 @@
 // ==================== VK BRIDGE ИНИЦИАЛИЗАЦИЯ ====================
+let vkUserInfo = null;
+
 // Инициализация VK Bridge в самом начале
 if (typeof vkBridge !== 'undefined') {
     vkBridge.send('VKWebAppInit')
@@ -8,12 +10,43 @@ if (typeof vkBridge !== 'undefined') {
         })
         .then((userInfo) => {
             console.log('👤 Информация о пользователе:', userInfo);
+            vkUserInfo = userInfo;
+            updateUserProfile(userInfo);
         })
         .catch((error) => {
             console.log('❌ Ошибка VK Bridge:', error);
         });
 } else {
     console.log('⚠️ VK Bridge недоступен');
+}
+
+// ==================== ОБНОВЛЕНИЕ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ ====================
+function updateUserProfile(userInfo) {
+    try {
+        const userElements = document.querySelectorAll('.user-info');
+        
+        userElements.forEach(userElement => {
+            const img = userElement.querySelector('img');
+            const span = userElement.querySelector('span');
+            
+            if (userInfo && userInfo.photo_200) {
+                img.src = userInfo.photo_200;
+                img.onerror = function() {
+                    // Если фото не загрузилось, оставляем дефолтное
+                    this.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiMyNTYzZWIiLz48cGF0aCBkPSJNNTAgMzBjNS41IDAgMTAgNC41IDEwIDEwcy00LjUgMTAtMTAgMTAtMTAtNC41LTEwLTEwIDQuNS0xMCAxMC0xMHptMCAzMGMxMC41IDAgMjAgNS41IDIwIDEwdjVIMzB2LTVjMC00LjUgOS41LTEwIDIwLTEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=";
+                };
+            }
+            
+            if (userInfo && (userInfo.first_name || userInfo.last_name)) {
+                const name = `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim();
+                span.textContent = name || 'Доктор';
+            }
+        });
+        
+        console.log('✅ Профиль пользователя обновлен');
+    } catch (error) {
+        console.log('⚠️ Ошибка обновления профиля:', error);
+    }
 }
 
 // ==================== СОСТОЯНИЕ ИГРЫ ====================
@@ -29,7 +62,7 @@ let gameState = {
 // ==================== КЛИНИЧЕСКИЕ СЛУЧАИ ====================
 let clinicalCases = {};
 let loadingAttempts = 0;
-const MAX_LOADING_ATTEMPTS = 3;
+const MAX_LOADING_ATTEMPTS = 2;
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async function() {
@@ -39,19 +72,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     showLoadingIndicator();
     
     try {
-        // Дополнительная инициализация VK Bridge
-        if (typeof vkBridge !== 'undefined') {
-            vkBridge.send('VKWebAppInit');
-            console.log('🌉 VK Bridge повторно инициализирован');
-        }
-        
-        // Добавляем общий таймаут на всю загрузку
-        const loadingPromise = loadClinicalCasesSimple();
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Timeout: загрузка заняла слишком много времени')), 10000);
-        });
-        
-        await Promise.race([loadingPromise, timeoutPromise]);
+        await loadClinicalCasesSimple();
         
         console.log('✅ Клинические случаи загружены успешно');
         hideLoadingIndicator();
@@ -65,12 +86,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.error('❌ ОШИБКА ЗАГРУЗКИ:', error);
         hideLoadingIndicator();
         
-        if (loadingAttempts < MAX_LOADING_ATTEMPTS) {
-            loadingAttempts++;
-            console.log(`🔄 Попытка перезагрузки ${loadingAttempts}/${MAX_LOADING_ATTEMPTS}...`);
-            setTimeout(() => location.reload(), 2000);
-        } else {
-            showErrorMessage(`Не удалось загрузить приложение после ${MAX_LOADING_ATTEMPTS} попыток. Попробуйте обновить страницу.`);
+        // Убираем автоматические перезагрузки - только показываем ошибку
+        showErrorMessage(`Ошибка загрузки: ${error.message}. Попробуйте обновить страницу вручную.`);
+        
+        // Пробуем продолжить работу с уже загруженными данными
+        try {
+            setupEventHandlers();
+            console.log('⚠️ Продолжаем работу без полной загрузки');
+        } catch (e) {
+            console.log('❌ Критическая ошибка:', e);
         }
     }
 });
