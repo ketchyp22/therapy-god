@@ -143,6 +143,7 @@ let gameState = {
     currentCaseIndex: 0,
     score: 0,
     selectedOption: null,
+    tempSelectedOption: null,
     totalCases: 5
 };
 
