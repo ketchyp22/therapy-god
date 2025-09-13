@@ -143,8 +143,7 @@ let gameState = {
     currentCaseIndex: 0,
     score: 0,
     selectedOption: null,    // Подтвержденный ответ
-    tempSelectedOption: null, // Временно выбранный ответ
-    totalCases: 5
+    tempSelectedOption: null // Временно выбранный ответ
 };
 
 // ==================== КЛИНИЧЕСКИЕ СЛУЧАИ ====================
@@ -494,11 +493,14 @@ function startCases() {
 
     console.log(`📋 Найдено ${systemCases.length} случаев для системы ${gameState.currentSystem}`);
 
-    gameState.currentCases = shuffleArray([...systemCases]).slice(0, Math.min(gameState.totalCases, systemCases.length));
+    // Используем ВСЕ случаи из выбранной системы, перемешиваем их для разнообразия
+    gameState.currentCases = shuffleArray([...systemCases]);
     gameState.currentCaseIndex = 0;
     gameState.score = 0;
     gameState.selectedOption = null;
     gameState.tempSelectedOption = null;
+
+    console.log(`🎯 Начинаем обучение с ${gameState.currentCases.length} клиническими случаями`);
 
     const startScreen = document.getElementById('start-screen');
     const caseContainer = document.getElementById('case-container');
@@ -514,7 +516,7 @@ function startCases() {
 
 // ==================== ЗАГРУЗКА СЛУЧАЯ ====================
 function loadCase() {
-    console.log(`📄 === ЗАГРУЗКА СЛУЧАЯ ${gameState.currentCaseIndex + 1} ===`);
+    console.log(`📄 === ЗАГРУЗКА СЛУЧАЯ ${gameState.currentCaseIndex + 1} из ${gameState.currentCases.length} ===`);
     
     if (gameState.currentCaseIndex >= gameState.currentCases.length) {
         showResults();
